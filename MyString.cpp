@@ -3,8 +3,9 @@
 #include <ostream>
 
 MyString::MyString() : _data(nullptr), _size(0) {}
-MyString::~MyString() { 
-  std::cout << "~MyString() " << _data << "\n";
+MyString::~MyString() {
+  std::cout << "~MyString() " << (_data ? _data : "nullptr")
+            << "\n"; // 输出 _data 的值
   delete[] _data;
 }
 
@@ -65,7 +66,7 @@ MyString MyString::operator+(const MyString &rhs) {
   return std::move(MyString(_temp));
 }
 
-MyString& MyString::operator+=(const MyString &rhs) {
+MyString &MyString::operator+=(const MyString &rhs) {
   if (rhs._data == nullptr) {
     return *this;
   }
@@ -90,6 +91,4 @@ std::ostream &operator<<(std::ostream &os, const MyString &rhs) {
   return os << rhs._data;
 }
 
-size_t MyString::size() const {
-  return _size;
-}
+size_t MyString::size() const { return _size; }
