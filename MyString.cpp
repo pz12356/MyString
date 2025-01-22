@@ -4,7 +4,7 @@
 
 MyString::MyString() : _data(nullptr), _size(0) {}
 MyString::~MyString() { 
-  std::cout << "~MyString() " << "\n";
+  std::cout << "~MyString() " << _data << "\n";
   delete[] _data;
 }
 
