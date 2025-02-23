@@ -1,28 +1,45 @@
-#ifndef MYSTRING_H
-#define MYSTRING_H
+#ifndef _MYSTRING_H
+#define _MYSTRING_H
 
 #include <cstddef>
 #include <iostream>
 
-class MyString {
+namespace A {
+
+class string {
 private:
+  static const size_t s_min_capacity;
   char *_data;
   size_t _size;
+  size_t _capacity;
+
+  void realloc_data(size_t new_cap);
 
 public:
-  MyString();
-  MyString(const char *str);
-  MyString(const MyString &rhs);
-  MyString(MyString&& rhs);
-  ~MyString();
+  string();
+  string(const char *str);
+  string(const string &rhs);
+  string(string &&rhs) noexcept;
+  ~string();
 
-  MyString& operator=(const MyString& rhs);
-  MyString& operator+=(const MyString& rhs);
-  MyString operator+(const MyString& rhs);
-  bool operator==(const MyString& rhs) const;
-  friend std::ostream& operator<<(std::ostream& os, const MyString& rhs);
+  string &operator=(const string &rhs);
+  string &operator=(string &&rhs);
+  friend std::ostream &operator<<(std::ostream &os, const string &rhs);
 
-  size_t size() const;
+  void reserve(size_t new_cap);
+  void shrink_to_fit();
+  string &append(const char *str);
+
+  const char *c_str() const noexcept;
+  size_t size() const noexcept;
+  size_t capacity() const noexcept;
+  bool empty() const noexcept;
+
+  string operator+(const string &rhs);
+  string &operator+=(const string &rhs);
+  bool operator==(const string &rhs) const;
+  bool operator!=(const string &rhs) const;
 };
 
+} // namespace A
 #endif

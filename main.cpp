@@ -1,12 +1,17 @@
-#include "MyString.h"
+#include "Test_MyString.h"
+
 #include <iostream>
 
 int main(int, char **) {
-  MyString s1("Hello");
-  MyString s2 = "World";
-  MyString s3 = s1 + s2;
-  std::cout << "s1: " << s1 << " " << s1.size() << "\n";
-  std::cout << "s2: " << s2 << " " << s2.size() << "\n";
-  std::cout << "s3: " << s3 << " " << s3.size() << "\n";
+  TEST_CASE(A_string_constuctors);
+  TEST_CASE(A_string_copy_operations);
+  TEST_CASE(A_string_move_operations);
+  TEST_CASE(A_string_management);
+  TEST_CASE(A_string_append);
+  TEST_CASE(A_string_comparison);
+  TEST_CASE(A_string_edges_cases);
+  TEST_CASE(A_string_exception_safety);
+
+  std::cout << "All test passed." << std::endl;
   return 0;
 }

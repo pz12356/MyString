@@ -1,94 +1,141 @@
 #include "MyString.h"
+#include <algorithm>
 #include <cstring>
 #include <ostream>
+#include <stdexcept>
 
-MyString::MyString() : _data(nullptr), _size(0) {}
-MyString::~MyString() {
-  std::cout << "~MyString() " << (_data ? _data : "nullptr")
-            << "\n"; // 输出 _data 的值
+namespace A {
+
+const size_t string::s_min_capacity = 15;
+
+void string::realloc_data(size_t new_cap) {
+  new_cap = std::max(new_cap, s_min_capacity);
+  char *new_data = new char[new_cap + 1];
+  if (_size > 0) {
+    memcpy(new_data, _data, _size);
+  }
+  new_data[_size] = '\0';
   delete[] _data;
+  _data = new_data;
+  _capacity = new_cap;
 }
 
-MyString::MyString(const char *str) {
+string::string() : _size(0), _capacity(s_min_capacity) {
+  _data = new char[_capacity + 1];
+  _data[0] = '\0';
+}
+
+string::~string() { delete[] _data; }
+
+string::string(const char *str) {
   if (str == nullptr) {
-    return;
+    throw std::invalid_argument("null pointer");
   }
   _size = strlen(str);
-  _data = new char[_size + 1];
-  strcpy(_data, str);
-  _data[_size] = '\0';
+  _capacity = std::max(_size, s_min_capacity);
+  _data = new char[_capacity + 1];
+  memcpy(_data, str, _size + 1);
 }
 
-MyString::MyString(const MyString &rhs) {
-  if (rhs._data == nullptr) {
-    _size = 0;
-    _data = nullptr;
-    return;
-  }
-  _size = rhs.size();
-  _data = new char[_size + 1];
-  strcpy(_data, rhs._data);
-  _data[_size] = '\0';
+string::string(const string &rhs) : _size(rhs._size), _capacity(rhs._capacity) {
+  _data = new char[_capacity + 1];
+  memcpy(_data, rhs._data, _size + 1);
 }
 
-MyString::MyString(MyString &&rhs) {
-  _data = rhs._data;
-  _size = rhs._size;
-  rhs._size = 0;
+string::string(string &&rhs) noexcept
+    : _size(rhs._size), _capacity(rhs._capacity), _data(rhs._data) {
   rhs._data = nullptr;
+  rhs._size = 0;
+  rhs._capacity = 0;
 }
 
-MyString &MyString::operator=(const MyString &rhs) {
+string &string::operator=(const string &rhs) {
   if (this == &rhs) {
     return *this;
   }
-  if (rhs._data == nullptr) {
-    _size = 0;
-    _data = nullptr;
+  delete[] _data;
+  _size = rhs._size;
+  _capacity = rhs._capacity;
+  _data = new char[_capacity + 1];
+  memcpy(_data, rhs._data, rhs._size + 1);
+  return *this;
+}
+
+string &string::operator=(string &&rhs) {
+  if (this == &rhs) {
     return *this;
   }
   delete[] _data;
+  _data = rhs._data;
   _size = rhs._size;
-  _data = new char[_size + 1];
-  strcpy(_data, rhs._data);
+  _capacity = rhs._capacity;
+  rhs._data = nullptr;
+  rhs._capacity = 0;
+  rhs._size = 0;
+  return *this;
+}
+
+std::ostream &operator<<(std::ostream &os, const string &rhs) {
+  return os << rhs._data;
+}
+
+void string::reserve(size_t new_cap) {
+  if (new_cap > _capacity) {
+    realloc_data(new_cap);
+  }
+}
+
+void string::shrink_to_fit() {
+  if (_size < _capacity) {
+    realloc_data(_size);
+  }
+}
+
+string &string::append(const char *str) {
+  if (str == nullptr) {
+    throw std::invalid_argument("null pointer");
+  }
+  size_t len = strlen(str);
+  if (_size + len > _capacity) {
+    realloc_data(_size + len);
+  }
+  memcpy(_data + _size, str, len);
+  _size += len;
   _data[_size] = '\0';
   return *this;
 }
 
-MyString MyString::operator+(const MyString &rhs) {
+const char *string::c_str() const noexcept { return _data; }
+
+size_t string::size() const noexcept{ return _size; }
+
+size_t string::capacity() const noexcept {return _capacity;}
+
+bool string::empty() const noexcept {return _size == 0;}
+
+string string::operator+(const string &rhs) {
   if (rhs._data == nullptr) {
     return *this;
   }
-  char *_temp = new char[_size + rhs._size + 1];
-  strcpy(_temp, _data);
-  strcat(_temp, rhs._data);
-  _temp[_size + rhs._size] = '\0';
-  return std::move(MyString(_temp));
+  string temp(*this);
+  temp.append(rhs.c_str());
+  return std::move(string(temp));
 }
 
-MyString &MyString::operator+=(const MyString &rhs) {
+string &string::operator+=(const string &rhs) {
   if (rhs._data == nullptr) {
     return *this;
   }
-  _size += rhs._size;
-  char *_temp = new char[_size + 1];
-  strcpy(_temp, _data);
-  strcat(_temp, rhs._data);
-  _temp[_size] = '\0';
-  delete[] _data;
-  _data = _temp;
+  append(rhs.c_str());
   return *this;
 }
 
-bool MyString::operator==(const MyString &rhs) const {
-  if (rhs._data == nullptr) {
-    return _data == nullptr;
-  }
+bool string::operator==(const string &rhs) const {
   return strcmp(_data, rhs._data) == 0;
 }
 
-std::ostream &operator<<(std::ostream &os, const MyString &rhs) {
-  return os << rhs._data;
+bool string::operator!=(const string &rhs) const {
+  return strcmp(_data, rhs._data) != 0;
 }
 
-size_t MyString::size() const { return _size; }
+} // namespace A
